@@ -1,0 +1,280 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CampusBite - Smart College Canteen</title>
+    <!-- Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+    <!-- Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
+    <!-- CSS -->
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <canvas id="confetti-canvas"></canvas>
+
+    <!-- NAV -->
+    <nav>
+        <div class="logo">Campus<span>Bite</span></div>
+        <div class="nav-links">
+            <button class="nav-btn active" onclick="showPage('home')">Home</button>
+            <button class="nav-btn" onclick="showPage('colleges')">Colleges</button>
+            <button class="nav-btn" onclick="showPage('orders')">My Orders</button>
+            <button class="nav-btn" onclick="showPage('admin-login')">Admin</button>
+        </div>
+        <button class="cart-btn" onclick="toggleCart()"><i class="fas fa-shopping-cart"></i> Cart <span class="cart-count" id="cartCount">0</span></button>
+    </nav>
+
+    <!-- TOAST -->
+    <div class="toast" id="toast"></div>
+
+    <!-- ===== HOME PAGE ===== -->
+    <div class="page active" id="page-home">
+        <div class="hero">
+            <h1>Skip the queue.<br><em>Order ahead.</em></h1>
+            <p>Browse menus from 10 college canteens, order your favourite food, and pick it up when it's ready.</p>
+            <div class="hero-actions">
+                <button class="btn-primary" onclick="showPage('colleges')">Find Your College</button>
+                <button class="btn-outline" onclick="showPage('orders')">Track Orders</button>
+            </div>
+            <div class="live-counter">
+                <div class="counter-item">
+                    <i class="fas fa-signal"></i>
+                    <span id="liveUsers">127</span> live users
+                </div>
+            </div>
+        </div>
+        <div class="stats">
+            <div class="stat-card">
+                <i class="fas fa-school"></i>
+                <div class="stat-val">20</div>
+                <div class="stat-label">Colleges</div>
+            </div>
+            <div class="stat-card">
+                <i class="fas fa-utensils"></i>
+                <div class="stat-val">80+</div>
+                <div class="stat-label">Menu Items</div>
+            </div>
+            <div class="stat-card">
+                <i class="fas fa-clock"></i>
+                <div class="stat-val">0 min</div>
+                <div class="stat-label">Queue Time</div>
+            </div>
+        </div>
+        <div class="featured-section">
+            <div class="section-title"><i class="fas fa-star"></i> Popular This Week</div>
+            <div class="featured-grid" id="featuredGrid"></div>
+        </div>
+    </div>
+
+    <!-- ===== COLLEGE SEARCH ===== -->
+    <div class="page" id="page-colleges">
+        <div class="page-wrap">
+            <div class="page-title">Find Your College</div>
+            <div class="page-sub">Search and select your college to view the canteen menu</div>
+            <div class="search-box">
+                <i class="fas fa-search"></i>
+                <input type="text" id="collegeSearch" placeholder="Search college name..." oninput="filterColleges()">
+            </div>
+            <div class="college-grid" id="collegeGrid"></div>
+        </div>
+    </div>
+
+    <!-- ===== MENU PAGE ===== -->
+    <div class="page" id="page-menu">
+        <div class="menu-header">
+            <button class="back-btn" onclick="showPage('colleges')">&larr; Back</button>
+            <div>
+                <div class="menu-college-name" id="menuCollegeName"></div>
+                <div class="menu-college-items" id="menuCollegeItems"></div>
+            </div>
+        </div>
+        <div class="menu-content">
+            <div class="search-box menu-search-margin">
+                <i class="fas fa-search"></i>
+                <input type="text" id="menuSearch" placeholder="Search food item..." oninput="filterMenu()">
+            </div>
+            <div class="filter-row" id="filterRow"></div>
+            <div class="menu-grid" id="menuGrid"></div>
+        </div>
+    </div>
+
+    <!-- ===== ORDERS PAGE ===== -->
+    <div class="page" id="page-orders">
+        <div class="page-wrap">
+            <div class="page-title">My Orders</div>
+            <div class="page-sub">Track the status of your orders</div>
+            <div class="scanner-panel">
+                <div class="scanner-header">
+                    <div>Order QR Scanner</div>
+                    <button class="btn-outline" id="qrScanBtn" onclick="toggleQrScanner()">Open Scanner</button>
+                </div>
+                <div id="qrScanner" class="qr-scanner qr-scanner-hidden"></div>
+                <div id="qrScanMessage" class="no-results qr-scan-message"></div>
+            </div>
+            <div class="live-tracking" id="liveTracking"></div>
+            <div class="orders-list" id="ordersList"></div>
+        </div>
+    </div>
+
+    <!-- ===== ADMIN LOGIN ===== -->
+    <div class="page" id="page-admin-login">
+        <div class="admin-login-container">
+            <div class="admin-login-card">
+                <div class="admin-icon"><i class="fas fa-lock"></i></div>
+                <h2>Admin Login</h2>
+                <p>Sign in to manage colleges, menus and orders</p>
+                <div class="form-group"><label>Username</label><input type="text" id="adminUser" placeholder="admin"></div>
+                <div class="form-group"><label>Password</label><input type="password" id="adminPass" placeholder="********"></div>
+                <div class="admin-err" id="adminErr">Incorrect credentials. Try admin / admin123</div>
+                <button class="btn-primary admin-signin-full" onclick="adminLogin()">Sign In</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ===== ADMIN DASHBOARD ===== -->
+    <div class="page" id="page-admin">
+        <div class="page-wrap max-width-1100">
+            <div class="admin-flex-between">
+                <div><div class="page-title">Admin Dashboard</div><div class="page-sub">Manage your canteen system</div></div>
+                <button class="btn-outline" onclick="adminLogout()">Logout</button>
+            </div>
+            <div class="admin-stats">
+                <div class="admin-card">
+                    <h3><i class="fas fa-school"></i> Total Colleges</h3>
+                    <div class="stat-val" id="totalColleges">0</div>
+                </div>
+                <div class="admin-card">
+                    <h3><i class="fas fa-utensils"></i> Total Items</h3>
+                    <div class="stat-val" id="totalItems">0</div>
+                </div>
+                <div class="admin-card">
+                    <h3><i class="fas fa-receipt"></i> Total Orders</h3>
+                    <div class="stat-val" id="totalOrders">0</div>
+                </div>
+                <div class="admin-card">
+                    <h3><i class="fas fa-coins"></i> Total Revenue</h3>
+                    <div class="stat-val" id="totalRevenue">₹0</div>
+                </div>
+            </div>
+            <!-- Add after existing admin-stats -->
+            <div class="admin-stats admin-stats-4">
+                <div class="stat-card">
+                    <i class="fas fa-calendar-day"></i>
+                    <div class="stat-val" id="todayOrders">0</div>
+                    <div class="stat-label">Today's Orders</div>
+                </div>
+                <div class="stat-card">
+                    <i class="fas fa-chart-line"></i>
+                    <div class="stat-val" id="todayRevenue">₹0</div>
+                    <div class="stat-label">Today's Revenue</div>
+                </div>
+                <div class="stat-card">
+                    <i class="fas fa-calculator"></i>
+                    <div class="stat-val" id="avgOrderValue">₹0</div>
+                    <div class="stat-label">Avg Order Value</div>
+                </div>
+                <div class="stat-card">
+                    <i class="fas fa-clock"></i>
+                    <div class="stat-val" id="pendingOrders">0</div>
+                    <div class="stat-label">Pending Orders</div>
+                </div>
+            </div>
+
+            <!-- Add export buttons -->
+            <div class="admin-actions">
+                <button class="btn-outline" onclick="exportOrders()">
+                    <i class="fas fa-download"></i>
+                    Export Orders
+                </button>
+                <button class="btn-outline btn-outline-danger" onclick="clearAllOrders()">
+                    <i class="fas fa-trash"></i>
+                    Clear All Orders
+                </button>
+            </div>
+            <div class="admin-grid admin-grid-margin">
+                <div class="admin-card">
+                    <h3><i class="fas fa-school"></i> Colleges <span class="admin-colleges-meta">(10 registered)</span></h3>
+                    <div class="table-responsive">
+                        <table class="admin-table">
+                            <tr><th>ID</th><th>College Name</th><th>City</th><th>Items</th><th>Orders</th><th>Revenue</th><th>Action</th></tr>
+                            <tbody id="adminCollegeTable"></tbody>
+                        </table>
+                    </div>
+                </div>
+                <div class="admin-card">
+                    <h3><i class="fas fa-clipboard-list"></i> Recent Orders</h3>
+                    <div class="table-responsive">
+                        <table class="admin-table">
+                            <tr><th>Order ID</th><th>College</th><th>Items</th><th>Total</th><th>Status</th><th>Action</th></tr>
+                            <tbody id="adminOrderTable"></tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+            <!-- Add after existing admin-grid -->
+            <div class="admin-grid admin-grid-margin">
+                <!-- Top Selling Items -->
+                <div class="admin-card">
+                    <h3>
+                        <i class="fas fa-crown"></i>
+                        Top Selling Items
+                    </h3>
+                    <div id="topItemsContainer"></div>
+                </div>
+                
+                <!-- College Performance -->
+                <div class="admin-card">
+                    <h3>
+                        <i class="fas fa-trophy"></i>
+                        College Performance
+                    </h3>
+                    <div id="collegePerformance" class="college-performance-box"></div>
+                </div>
+            </div>
+            <div class="admin-card analytics-card">
+                <h3><i class="fas fa-chart-line"></i> Orders Overview</h3>
+                <div class="chart-container">
+                    <canvas id="orderChart"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- CART PANEL -->
+    <div class="cart-overlay" id="cartOverlay" onclick="toggleCart()"></div>
+    <div class="cart-panel" id="cartPanel">
+        <div class="cart-header">
+            <h2><i class="fas fa-shopping-bag"></i> Your Cart</h2>
+            <button class="close-btn" onclick="toggleCart()">&times;</button>
+        </div>
+        <div class="cart-items" id="cartItems"></div>
+        <div class="cart-footer">
+            <div class="cart-total-row">
+                <span class="cart-total-label">Subtotal</span>
+                <span class="cart-total-val" id="cartSubtotal">₹0</span>
+            </div>
+            <div class="cart-total-row">
+                <span class="cart-total-label">Delivery Fee</span>
+                <span class="cart-total-val" id="deliveryFee">₹0</span>
+            </div>
+            <div class="cart-total-row grand-total">
+                <span class="cart-total-label">Total</span>
+                <span class="cart-total-val" id="cartTotal">₹0</span>
+            </div>
+            <button class="place-order-btn" id="placeOrderBtn" onclick="placeOrder()">Place Order</button>
+        </div>
+    </div>
+
+    <!-- MODAL -->
+    <div class="modal-overlay" id="modalOverlay">
+        <div class="modal" id="modalContent"></div>
+    </div>
+
+    <!-- JavaScript -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://unpkg.com/html5-qrcode@2.3.7/minified/html5-qrcode.min.js"></script>
+    <script src="server.js"></script>
+</body>
+</html>
